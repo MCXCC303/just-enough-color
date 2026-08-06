@@ -1,0 +1,17 @@
+{
+	"extends": "zotero-types/entries/sandbox/",
+	"compilerOptions": {
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"include": [
+		"src",
+		"typings"
+	],
+	"exclude": [
+		"build",
+		"addon"
+	]
+}

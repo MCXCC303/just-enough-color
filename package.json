@@ -1,0 +1,33 @@
+{
+	"name": "just-enough-color",
+	"version": "0.1.0",
+	"description": "Just Enough Color: arbitrary-color highlights and underlines in the Zotero reader",
+	"config": {
+		"addonName": "Just Enough Color",
+		"addonID": "just-enough-color@zotero.plugin",
+		"addonRef": "jec",
+		"addonInstance": "JustEnoughColor",
+		"prefsPrefix": "extensions.zotero.jec"
+	},
+	"homepage": "https://github.com/MCXC303/just-enough-color",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MCXC303/just-enough-color.git"
+	},
+	"license": "AGPL-3.0-or-later",
+	"author": "thf",
+	"scripts": {
+		"start": "zotero-plugin serve",
+		"build": "zotero-plugin build && mkdir -p build && cp .scaffold/build/just-enough-color.xpi build/ && rm -f typings/i10n.d.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"zotero-plugin-toolkit": "5.1.0-beta.13"
+	},
+	"devDependencies": {
+		"@types/node": "^24.0.0",
+		"typescript": "^5.9.3",
+		"zotero-plugin-scaffold": "^0.8.5",
+		"zotero-types": "^4.1.0-beta.4"
+	}
+}

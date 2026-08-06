@@ -1,0 +1,40 @@
+<groupbox
+        onload="Zotero.JustEnoughColor.hooks.onPrefsEvent('load', { window })"
+>
+    <vbox flex="1" style="min-height: 200px; padding: 12px">
+        <label>
+            <html:h3>Just Enough Color</html:h3>
+        </label>
+        <label>
+            在 Zotero Reader 中为高亮 / 下划线标注使用任意颜色：
+        </label>
+        <label style="margin-top: 4px">
+            · 选中文本后，调色板末尾的彩色方块可打开任意颜色选择器；
+        </label>
+        <label>
+            · 右键点击标注，可随时在 "just-enough-color" 菜单中重新选择任意颜色；
+        </label>
+        <label>
+            · 使用自定义颜色的标注，该菜单条目会带选中标记（✔）。
+        </label>
+
+        <separator style="margin: 16px 0"/>
+
+        <label>
+            <html:h3>最近使用的自定义颜色</html:h3>
+        </label>
+        <html:div
+                id="jec-recent-colors"
+                style="
+          min-height: 32px;
+          border: 1px solid var(--fill-quaternary, #ccc);
+          border-radius: 6px;
+          padding: 8px;
+          font-size: 12px;
+        "
+        ></html:div>
+        <hbox style="margin-top: 10px">
+            <button id="jec-btn-clear-recent" label="清空最近颜色"/>
+        </hbox>
+    </vbox>
+</groupbox>

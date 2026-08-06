@@ -1,0 +1,22 @@
+# dot files
+.DS_Store
+.claude
+.idea/
+CLAUDE.md
+AGENTS.md
+*.swp
+
+# Node.js
+node_modules
+yarn.lock
+pnpm-lock.yaml
+
+# TSC
+tsconfig.tsbuildinfo
+
+# Scaffold
+.env
+.scaffold
+build
+logs
+typings/i10n.d.ts
