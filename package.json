@@ -9,10 +9,10 @@
 		"addonInstance": "JustEnoughColor",
 		"prefsPrefix": "extensions.zotero.jec"
 	},
-	"homepage": "https://github.com/MCXC303/just-enough-color",
+	"homepage": "https://github.com/MCXCC303/just-enough-color",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/MCXC303/just-enough-color.git"
+		"url": "git+https://github.com/MCXCC303/just-enough-color.git"
 	},
 	"license": "AGPL-3.0-or-later",
 	"author": "thf",
