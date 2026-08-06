@@ -2,6 +2,8 @@
 
 在 Zotero Reader 中为高亮 / 下划线标注使用任意颜色。
 
+![Just Enough Color](images/just-enough-color.png)
+
 ## 功能
 
 - 选中文本后，8 色调色板末尾会出现一个彩色方块，点击可打开任意颜色选择器（彩虹预设、Zotero 8 色、最近使用、原生取色器、hex 输入）
