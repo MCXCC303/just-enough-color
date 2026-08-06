@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history so `zotero-plugin release` can generate the changelog
+          # from commits between the previous tag and this one
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set version from tag
+        # The release is created with tag v<package.json version>, so make
+        # the version match the tag that triggered this workflow (e.g. a
+        # v0.1.1 tag publishes version 0.1.1). No git tag is created here.
+        # --allow-same-version: the standard local `npm run release` flow
+        # already bumped package.json to the tagged version, in which case
+        # npm version would otherwise fail with "Version not changed".
+        run: npm version ${GITHUB_REF_NAME#v} --no-git-tag-version --allow-same-version
+
+      - name: Check if release already exists
+        id: check-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" --json tagName >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Release
+        if: steps.check-release.outputs.exists == 'false'
+        # zotero-plugin-scaffold detects the CI environment and:
+        #  1. builds the XPI (bumpp.execute)
+        #  2. creates a GitHub release with tag v<version> and uploads the XPI
+        #  3. updates the "release" tag with update.json (for Zotero auto-update)
+        run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
