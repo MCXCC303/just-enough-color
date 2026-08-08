@@ -42,12 +42,18 @@ function hslToHex(h: number, s: number, l: number): string {
 	return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
 }
 
-/** Rainbow presets (12 saturated hues + 12 pastel hues), as "#rrggbb". */
-function buildPresets(): string[] {
+/** Strong (saturated) rainbow presets - 12 hues at 100% saturation. */
+function buildStrongPresets(): string[] {
 	const colors: string[] = [];
 	for (let h = 0; h < 360; h += 30) {
 		colors.push(hslToHex(h, 100, 50));
 	}
+	return colors;
+}
+
+/** Light (pastel) rainbow presets - 12 hues at low saturation. */
+function buildLightPresets(): string[] {
+	const colors: string[] = [];
 	for (let h = 0; h < 360; h += 30) {
 		colors.push(hslToHex(h, 60, 78));
 	}
@@ -118,14 +124,34 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	].join("; ");
 	root.append(body);
 
-	// ---- Preset rainbow grid ----
-	const presetRow = doc.createElement("div");
-	presetRow.style.cssText = [
-		"display: flex",
-		"flex-wrap: wrap",
-		"gap: 4px",
-	].join("; ");
-	const presets = buildPresets();
+	// ---- Color groups with section labels ----
+	// Each group is a small caption ("Zotero Color", "Strong Color", ...)
+	// followed by its swatch row, so the palette reads at a glance.
+	const makeGroup = (title: string): {row: HTMLElement} => {
+		const group = doc.createElement("div");
+		group.style.cssText = [
+			"display: flex",
+			"flex-direction: column",
+			"gap: 4px",
+		].join("; ");
+		const label = doc.createElement("div");
+		label.textContent = title;
+		label.style.cssText = [
+			"font-size: 11px",
+			"color: var(--fill-secondary, #888)",
+			"text-transform: uppercase",
+			"letter-spacing: 0.4px",
+		].join("; ");
+		const row = doc.createElement("div");
+		row.style.cssText = [
+			"display: flex",
+			"flex-wrap: wrap",
+			"gap: 4px",
+		].join("; ");
+		group.append(label, row);
+		body.append(group);
+		return {row};
+	};
 	let checked: HTMLElement | null = null;
 	const clearChecked = () => {
 		if (checked) {
@@ -163,28 +189,32 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		}
 		return swatch;
 	};
-	for (const color of presets) {
-		presetRow.append(makeSwatch(color));
-	}
-	body.append(presetRow);
 
-	// ---- Stock Zotero colors ----
-	const stockRow = doc.createElement("div");
-	stockRow.style.cssText = presetRow.style.cssText;
+	// 1) Zotero's stock 8 colors
+	const zoteroGroup = makeGroup("Zotero Color");
 	for (const color of STOCK_COLORS) {
-		stockRow.append(makeSwatch(color));
+		zoteroGroup.row.append(makeSwatch(color));
 	}
-	body.append(stockRow);
 
-	// ---- Recently used custom colors ----
+	// 2) Strong saturated hues
+	const strongGroup = makeGroup("Strong Color");
+	for (const color of buildStrongPresets()) {
+		strongGroup.row.append(makeSwatch(color));
+	}
+
+	// 3) Light pastel hues
+	const lightGroup = makeGroup("Light Color");
+	for (const color of buildLightPresets()) {
+		lightGroup.row.append(makeSwatch(color));
+	}
+
+	// 4) Recently used custom colors
 	const recent = getRecentColors().filter(c => normalizeColor(c));
 	if (recent.length) {
-		const recentRow = doc.createElement("div");
-		recentRow.style.cssText = presetRow.style.cssText;
+		const recentGroup = makeGroup("Recently Used");
 		for (const color of recent) {
-			recentRow.append(makeSwatch(color));
+			recentGroup.row.append(makeSwatch(color));
 		}
-		body.append(recentRow);
 	}
 
 	// ---- Arbitrary color: native picker + hex input ----
