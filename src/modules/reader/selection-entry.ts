@@ -39,54 +39,58 @@ function ensurePopupStyle(doc: Document): void {
 }
 
 function handleSelectionPopup(event: ReaderEvent): void {
-	const {reader, doc, params, append} = event;
-	if (!reader || !doc || !params?.annotation || !append) {
-		return;
-	}
-	ensurePopupStyle(doc);
-
-	const btn = doc.createElement("button");
-	btn.className = "toolbar-button color-button";
-	btn.title = "Just Enough Color";
-	// Rainbow swatch sized like the native IconColor16 (16x16 rounded square
-	// with a subtle stroke) centered in the 20x20 color-button, so it lines
-	// up with the stock color buttons.
-	const swatch = doc.createElement("span");
-	swatch.style.cssText = [
-		"width: 16px",
-		"height: 16px",
-		"border-radius: 2px",
-		"background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-		"border: 1px solid rgba(0, 0, 0, 0.1)",
-	].join("; ");
-	btn.append(swatch);
-
-	let clicked = false;
-	btn.addEventListener("click", (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		if (clicked) {
+	try {
+		const {reader, doc, params, append} = event;
+		if (!reader || !doc || !params?.annotation || !append) {
 			return;
 		}
-		clicked = true;
-		const rect = btn.getBoundingClientRect();
-		openColorPicker({
-			doc,
-			x: rect.left,
-			y: rect.bottom,
-			onPick: (color) => createAnnotationWithColor(reader, params.annotation, color),
+		ensurePopupStyle(doc);
+
+		const btn = doc.createElement("button");
+		btn.className = "toolbar-button color-button";
+		btn.title = "Just Enough Color";
+		// Rainbow swatch sized like the native IconColor16 (16x16 rounded square
+		// with a subtle stroke) centered in the 20x20 color-button, so it lines
+		// up with the stock color buttons.
+		const swatch = doc.createElement("span");
+		swatch.style.cssText = [
+			"width: 16px",
+			"height: 16px",
+			"border-radius: 2px",
+			"background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+			"border: 1px solid rgba(0, 0, 0, 0.1)",
+		].join("; ");
+		btn.append(swatch);
+
+		let clicked = false;
+		btn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			if (clicked) {
+				return;
+			}
+			clicked = true;
+			const rect = btn.getBoundingClientRect();
+			openColorPicker({
+				doc,
+				x: rect.left,
+				y: rect.bottom,
+				onPick: (color) => createAnnotationWithColor(reader, params.annotation, color),
+			});
 		});
-	});
 
-	append(btn);
+		append(btn);
 
-	// Move the swatch into the colors row so it sits right after the 8
-	// stock colors (the CustomSections node renders at the end of the popup).
-	try {
-		const colors = btn.closest(".selection-popup")?.querySelector(".colors");
-		colors?.append(btn);
-	} catch {
-		// Popup may already be unmounted; the button keeps working anyway
+		// Move the swatch into the colors row so it sits right after the 8
+		// stock colors (the CustomSections node renders at the end of the popup).
+		try {
+			const colors = btn.closest(".selection-popup")?.querySelector(".colors");
+			colors?.append(btn);
+		} catch {
+			// Popup may already be unmounted; the button keeps working anyway
+		}
+	} catch (e) {
+		reportError("selection popup entry failed", e);
 	}
 }
 
@@ -98,6 +102,13 @@ function handleSelectionPopup(event: ReaderEvent): void {
 function createAnnotationWithColor(reader: any, annotation: any, color: string): void {
 	Zotero.debug(`[JEC] createAnnotationWithColor ${color}`);
 	try {
+		// The reader may have flipped to read-only since the swatch was clicked
+		// (e.g. a failed save marks the reader read-only); bail out before
+		// calling the annotation manager.
+		if (reader._state?.readOnly) {
+			Zotero.debug("[JEC] skipped: reader is read-only");
+			return;
+		}
 		const internal = reader._internalReader;
 		Zotero.debug(`[JEC] internalReader present: ${!!internal}, annotationManager present: ${!!internal?._annotationManager}`);
 		if (!internal?._annotationManager) {
@@ -123,7 +134,17 @@ function createAnnotationWithColor(reader: any, annotation: any, color: string):
 		const result = internal._annotationManager.addAnnotation(
 			cloneIntoFrame(reader, payload),
 		);
-		Zotero.debug(`[JEC] annotation added: ${result?.id}, color: ${result?.color}`);
+		if (result) {
+			Zotero.debug(`[JEC] annotation added: ${result.id}, color: ${result.color}`);
+		} else {
+			// addAnnotation returns null (rather than throwing) when the
+			// annotation manager is read-only - surface it instead of silently
+			// dropping the annotation.
+			Zotero.debug("[JEC] annotation not created (annotationManager returned null)");
+			new ztoolkit.ProgressWindow("Just Enough Color")
+				.createLine({type: "fail", text: "标注未创建:阅读器当前为只读或标注保存失败"})
+				.show();
+		}
 		// Note: the selection and the popup are already cleared by the reader
 		// itself when the swatch is clicked (same as the stock color buttons),
 		// and the current tool (highlight/underline) is left untouched so the
