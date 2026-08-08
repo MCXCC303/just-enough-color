@@ -353,10 +353,24 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	root.style.top = top + "px";
 
 	// ---- Outside click / Escape dismissal ----
+	// The picker lives inside the reader iframe. `win.top` is the window
+	// hosting the reader (the main window tab or a standalone reader
+	// window); clicks anywhere in that window - including inside the iframe
+	// (the PDF view) and on the sidebar/toolbar - bubble to the top
+	// document, so one capture listener here closes the picker reliably.
+	const topDoc = win.top?.document;
 	const onMouseDown = (event: MouseEvent) => {
-		if (!root.contains(event.target as Node)) {
-			closeColorPicker();
+		const target = event.target;
+		if (target) {
+			try {
+				if (root.contains(target as Node)) {
+					return; // Click inside the picker
+				}
+			} catch {
+				// target from another document - treat as outside
+			}
 		}
+		closeColorPicker();
 	};
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.key === "Escape") {
@@ -364,12 +378,12 @@ export function openColorPicker(options: ColorPickerOptions): void {
 			closeColorPicker();
 		}
 	};
-	win.addEventListener("mousedown", onMouseDown, true);
+	topDoc?.addEventListener("mousedown", onMouseDown, true);
 	win.addEventListener("keydown", onKeyDown as EventListener, true);
 
 	currentPicker = root;
 	currentCleanup = () => {
-		win.removeEventListener("mousedown", onMouseDown, true);
+		topDoc?.removeEventListener("mousedown", onMouseDown, true);
 		win.removeEventListener("keydown", onKeyDown, true);
 	};
 }
