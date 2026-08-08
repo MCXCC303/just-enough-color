@@ -85,7 +85,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"pointer-events: auto",
 		"width: 260px",
 		"background: var(--material-sidepane, #ffffff)",
-		"color: var(--material-text, #000000)",
+		"color: var(--fill-primary, #000000)",
 		"border: 1px solid var(--fill-quaternary, #c8c8c8)",
 		"border-radius: 8px",
 		"box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25)",
@@ -113,7 +113,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"background: none",
 		"cursor: pointer",
 		"font-size: 13px",
-		"color: var(--material-text, #000)",
+		"color: var(--fill-primary, #000)",
 		"padding: 2px 6px",
 		"border-radius: 4px",
 	].join("; ");
@@ -171,7 +171,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	const setChecked = (swatch: HTMLElement) => {
 		clearChecked();
 		checked = swatch;
-		swatch.style.outline = "2px solid var(--material-accent, #2ea8e5)";
+		swatch.style.outline = "2px solid var(--accent-blue, #2ea8e5)";
 		swatch.style.outlineOffset = "1px";
 	};
 	const makeSwatch = (color: string): HTMLElement => {
@@ -265,7 +265,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"border: 1px solid var(--fill-quaternary, #c8c8c8)",
 		"border-radius: 4px",
 		"background: var(--fill-secondary, #f9f9f9)",
-		"color: var(--material-text, #000)",
+		"color: var(--fill-primary, #000)",
 		"font-family: monospace",
 	].join("; ");
 	const applyBtn = doc.createElement("button");
@@ -275,7 +275,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"border: none",
 		"border-radius: 4px",
 		"cursor: pointer",
-		"background: var(--material-accent, #2ea8e5)",
+		"background: var(--accent-blue, #2ea8e5)",
 		"color: white",
 	].join("; ");
 	// Live-preview the input color in a small swatch next to the hex field
