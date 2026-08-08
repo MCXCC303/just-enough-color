@@ -42,20 +42,29 @@ function hslToHex(h: number, s: number, l: number): string {
 	return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
 }
 
-/** Strong (saturated) rainbow presets - 12 hues at 100% saturation. */
+/** Strong (saturated) rainbow presets - 10 hues at 100% saturation. */
 function buildStrongPresets(): string[] {
 	const colors: string[] = [];
-	for (let h = 0; h < 360; h += 30) {
+	for (let h = 0; h < 360; h += 36) {
 		colors.push(hslToHex(h, 100, 50));
 	}
 	return colors;
 }
 
-/** Light (pastel) rainbow presets - 12 hues at low saturation. */
+/** Light (pastel) rainbow presets - 10 hues at low saturation. */
 function buildLightPresets(): string[] {
 	const colors: string[] = [];
-	for (let h = 0; h < 360; h += 30) {
+	for (let h = 0; h < 360; h += 36) {
 		colors.push(hslToHex(h, 60, 78));
+	}
+	return colors;
+}
+
+/** Morandi (muted, grayish) presets - 20 hues at low saturation. */
+function buildMorandiPresets(): string[] {
+	const colors: string[] = [];
+	for (let h = 0; h < 360; h += 18) {
+		colors.push(hslToHex(h, 25, 60));
 	}
 	return colors;
 }
@@ -208,7 +217,13 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		lightGroup.row.append(makeSwatch(color));
 	}
 
-	// 4) Recently used custom colors
+	// 4) Morandi muted hues
+	const morandiGroup = makeGroup("Morandi Color");
+	for (const color of buildMorandiPresets()) {
+		morandiGroup.row.append(makeSwatch(color));
+	}
+
+	// 5) Recently used custom colors
 	const recent = getRecentColors().filter(c => normalizeColor(c));
 	if (recent.length) {
 		const recentGroup = makeGroup("Recently Used");
