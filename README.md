@@ -24,7 +24,7 @@ More color in Zotero reader annotations!
 ## Usage
 
 1. Select text in the reader, select rainbow swatch to pick any color to highlight/underline with.
-2. Right-click an existing annotation and choose `just-enough-color` to re-color it with any color.
+2. Right-click an existing annotation and choose `Just Enough Color` to re-color it with any color.
 
 ## Features
 
