@@ -353,13 +353,17 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	root.style.top = top + "px";
 
 	// ---- Outside click / Escape dismissal ----
-	// The picker lives inside the reader iframe. `win.top` is the window
-	// hosting the reader (the main window tab or a standalone reader
-	// window); clicks anywhere in that window - including inside the iframe
-	// (the PDF view) and on the sidebar/toolbar - bubble to the top
-	// document, so one capture listener here closes the picker reliably.
+	// The picker lives inside the reader iframe. Clicks may land anywhere:
+	// on the PDF view (inside the reader iframe or its nested pdf.js
+	// iframe), or on the host window's UI (sidebar, toolbar). Register the
+	// dismissal listeners on both the reader window/document and the top
+	// document (the main window or a standalone reader window) - a bubbling
+	// mousedown anywhere in the host window reaches at least one of them.
+	// Each attachment is guarded so a failing listener never breaks the
+	// picker itself (its close button always keeps working).
 	const topDoc = win.top?.document;
 	const onMouseDown = (event: MouseEvent) => {
+		Zotero.debug("[JEC] outside-click listener fired");
 		const target = event.target;
 		if (target) {
 			try {
@@ -378,17 +382,54 @@ export function openColorPicker(options: ColorPickerOptions): void {
 			closeColorPicker();
 		}
 	};
-	topDoc?.addEventListener("mousedown", onMouseDown, true);
-	win.addEventListener("keydown", onKeyDown as EventListener, true);
+	const cleanupFns: Array<() => void> = [];
+	const attach = (
+		target: EventTarget | null | undefined,
+		type: string,
+		fn: EventListener,
+	) => {
+		if (!target) {
+			return;
+		}
+		try {
+			target.addEventListener(type, fn, true);
+			cleanupFns.push(() => {
+				try {
+					target.removeEventListener(type, fn, true);
+				} catch {
+					// Already gone
+				}
+			});
+			Zotero.debug(`[JEC] attached ${type} listener`);
+		} catch (e) {
+			Zotero.debug(`[JEC] failed to attach ${type} listener: ${e}`);
+		}
+	};
+	attach(topDoc, "mousedown", onMouseDown as EventListener);
+	attach(topDoc, "pointerdown", onMouseDown as EventListener);
+	attach(win, "mousedown", onMouseDown as EventListener);
+	attach(win, "pointerdown", onMouseDown as EventListener);
+	attach(win, "keydown", onKeyDown as EventListener);
+	attach(topDoc, "keydown", onKeyDown as EventListener);
+	// The main window may differ from win.top (e.g. standalone reader
+	// windows); attach there too so sidebar/toolbar clicks still close it.
+	const mainDoc = Zotero.getMainWindow?.()?.document;
+	if (mainDoc && mainDoc !== topDoc) {
+		attach(mainDoc, "mousedown", onMouseDown as EventListener);
+		attach(mainDoc, "pointerdown", onMouseDown as EventListener);
+		attach(mainDoc, "keydown", onKeyDown as EventListener);
+	}
 
 	currentPicker = root;
 	currentCleanup = () => {
-		topDoc?.removeEventListener("mousedown", onMouseDown, true);
-		win.removeEventListener("keydown", onKeyDown, true);
+		for (const fn of cleanupFns) {
+			fn();
+		}
 	};
 }
 
 export function closeColorPicker(): void {
+	Zotero.debug("[JEC] closing picker");
 	if (currentCleanup) {
 		currentCleanup();
 		currentCleanup = null;
