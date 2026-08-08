@@ -5,7 +5,7 @@
 import {getPref, PREFS, setPref} from "../../utils/prefs";
 import {normalizeColor} from "./common";
 
-const MAX_RECENT = 12;
+const MAX_RECENT = 10;
 
 /** Recently used custom colors (normalized "#rrggbb"), most recent first. */
 export function getRecentColors(): string[] {
