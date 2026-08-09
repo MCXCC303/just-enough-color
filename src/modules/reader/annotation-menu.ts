@@ -87,7 +87,7 @@ function handleAnnotationContextMenu(event: ReaderEvent): void {
 		// itself. Clicking the item opens the picker, so no separate palette
 		// item is needed.
 		append({
-			label: "just-enough-color",
+			label: "Just Enough Color",
 			color: currentColor ?? undefined,
 			checked: isCustom,
 			disabled: reader._state?.readOnly || readOnly,
