@@ -61,7 +61,7 @@ function buildLightPresets(): string[] {
 }
 
 /** Morandi (muted, grayish) presets - 20 hues at low saturation. */
-function buildMorandiPresets(): string[] {
+export function buildMorandiPresets(): string[] {
 	const colors: string[] = [];
 	for (let h = 0; h < 360; h += 18) {
 		colors.push(hslToHex(h, 25, 60));

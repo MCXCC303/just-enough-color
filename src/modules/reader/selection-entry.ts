@@ -4,10 +4,10 @@
  * When text is selected the reader shows a popup with the 8 stock colors
  * (`renderTextSelectionPopup` event, CustomSections extension point). This
  * module appends a rainbow swatch right after those 8 colors; clicking it
- * opens the arbitrary-color picker and creates a highlight/underline with
- * the picked color via the reader's own annotation manager (so comments,
- * tags, page labels, the annotation popup's color indicator and right-click
- * color switching all work exactly as for stock colors).
+ * picks a random color from the 20 Morandi presets and creates a
+ * highlight/underline with it via the reader's own annotation manager (so
+ * comments, tags, page labels, the annotation popup's color indicator and
+ * right-click color switching all work exactly as for stock colors).
  */
 
 import {
@@ -17,7 +17,7 @@ import {
 	reportError,
 	unregisterReaderListener
 } from "./common";
-import {openColorPicker} from "./color-picker";
+import {buildMorandiPresets} from "./color-picker";
 
 /**
  * The stock selection popup is capped at 198px (8 colors * 20px + gaps);
@@ -27,6 +27,22 @@ const POPUP_STYLE_ID = "jec-selection-popup-style";
 const POPUP_STYLE = `
 	.selection-popup { max-width: 232px !important; }
 `;
+
+const MORANDI_COLORS = buildMorandiPresets();
+let lastRandomIndex = -1;
+
+/** Pick a random Morandi color, avoiding the one used on the previous click. */
+function pickRandomMorandi(): string {
+	if (MORANDI_COLORS.length <= 1) {
+		return MORANDI_COLORS[0];
+	}
+	let index = Math.floor(Math.random() * MORANDI_COLORS.length);
+	if (index === lastRandomIndex) {
+		index = (index + 1) % MORANDI_COLORS.length;
+	}
+	lastRandomIndex = index;
+	return MORANDI_COLORS[index];
+}
 
 function ensurePopupStyle(doc: Document): void {
 	if (doc.getElementById(POPUP_STYLE_ID)) {
@@ -70,13 +86,7 @@ function handleSelectionPopup(event: ReaderEvent): void {
 				return;
 			}
 			clicked = true;
-			const rect = btn.getBoundingClientRect();
-			openColorPicker({
-				doc,
-				x: rect.left,
-				y: rect.bottom,
-				onPick: (color) => createAnnotationWithColor(reader, params.annotation, color),
-			});
+			createAnnotationWithColor(reader, params.annotation, pickRandomMorandi());
 		});
 
 		append(btn);
