@@ -1,6 +1,6 @@
 {
 	"name": "just-enough-color",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "Just Enough Color: arbitrary-color highlights and underlines in the Zotero reader",
 	"config": {
 		"addonName": "Just Enough Color",
