@@ -13,6 +13,7 @@
 import {
 	cloneIntoFrame,
 	type ReaderEvent,
+	type ReaderLike,
 	registerReaderListener,
 	reportError,
 	unregisterReaderListener
@@ -105,6 +106,30 @@ function handleSelectionPopup(event: ReaderEvent): void {
 }
 
 /**
+ * Deselect text/annotations, matching the stock color buttons.
+ *
+ * The stock buttons flow through the reader's React `onAddAnnotation`
+ * handler, which ends with `setSelectedAnnotations([])`. Each view reacts
+ * to that state change by clearing the current text selection
+ * (`_setSelectionRanges()` + `getSelection().empty()`), which also closes
+ * the selection popup. This plugin adds annotations straight through
+ * `_annotationManager.addAnnotation()` and skips that chain, so we replay
+ * the deselect here.
+ */
+function deselectSelection(reader: ReaderLike): void {
+	try {
+		// The argument must be a real content-side array: a chrome array
+		// crossing into the content realm arrives as a Chrome Object
+		// Wrapper, and reading its `length` inside content code throws
+		// "Permission denied to access property 'length'" (same reason
+		// the annotation payload is cloneInto-ed before addAnnotation).
+		reader.setSelectedAnnotations?.(cloneIntoFrame(reader, []));
+	} catch (e) {
+		Zotero.debug(`[JEC] deselect failed: ${e}`);
+	}
+}
+
+/**
  * Create a highlight/underline annotation with an arbitrary color through
  * the reader's internal annotation manager (same pipeline as the native
  * color buttons: renders immediately, auto-saves with the item).
@@ -146,6 +171,9 @@ function createAnnotationWithColor(reader: any, annotation: any, color: string):
 		);
 		if (result) {
 			Zotero.debug(`[JEC] annotation added: ${result.id}, color: ${result.color}`);
+			// Replay the stock buttons' deselect step (see deselectSelection),
+			// so the popup closes and the text selection is cancelled.
+			deselectSelection(reader);
 		} else {
 			// addAnnotation returns null (rather than throwing) when the
 			// annotation manager is read-only - surface it instead of silently
@@ -155,10 +183,8 @@ function createAnnotationWithColor(reader: any, annotation: any, color: string):
 				.createLine({type: "fail", text: "标注未创建:阅读器当前为只读或标注保存失败"})
 				.show();
 		}
-		// Note: the selection and the popup are already cleared by the reader
-		// itself when the swatch is clicked (same as the stock color buttons),
-		// and the current tool (highlight/underline) is left untouched so the
-		// user can keep annotating.
+		// Note: the current tool (highlight/underline) is left untouched so
+		// the user can keep annotating.
 	} catch (e) {
 		reportError("create annotation failed", e);
 	}
