@@ -19,6 +19,7 @@ import {
 	unregisterReaderListener
 } from "./common";
 import {buildMorandiPresets} from "./color-picker";
+import {getString} from "../../utils/locale";
 
 /**
  * The stock selection popup is capped at 198px (8 colors * 20px + gaps);
@@ -65,7 +66,7 @@ function handleSelectionPopup(event: ReaderEvent): void {
 
 		const btn = doc.createElement("button");
 		btn.className = "toolbar-button color-button";
-		btn.title = "Just Enough Color";
+		btn.title = getString("selection-swatch-title");
 		// Rainbow swatch sized like the native IconColor16 (16x16 rounded square
 		// with a subtle stroke) centered in the 20x20 color-button, so it lines
 		// up with the stock color buttons.
@@ -101,7 +102,7 @@ function handleSelectionPopup(event: ReaderEvent): void {
 			// Popup may already be unmounted; the button keeps working anyway
 		}
 	} catch (e) {
-		reportError("selection popup entry failed", e);
+		reportError("error-selection-popup", e);
 	}
 }
 
@@ -147,7 +148,7 @@ function createAnnotationWithColor(reader: any, annotation: any, color: string):
 		const internal = reader._internalReader;
 		Zotero.debug(`[JEC] internalReader present: ${!!internal}, annotationManager present: ${!!internal?._annotationManager}`);
 		if (!internal?._annotationManager) {
-			reportError("annotationManager unavailable", new Error("_internalReader or _annotationManager missing"));
+			reportError("error-annotation-manager", new Error("_internalReader or _annotationManager missing"));
 			return;
 		}
 		const type =
@@ -179,14 +180,14 @@ function createAnnotationWithColor(reader: any, annotation: any, color: string):
 			// annotation manager is read-only - surface it instead of silently
 			// dropping the annotation.
 			Zotero.debug("[JEC] annotation not created (annotationManager returned null)");
-			new ztoolkit.ProgressWindow("Just Enough Color")
-				.createLine({type: "fail", text: "标注未创建:阅读器当前为只读或标注保存失败"})
+			new ztoolkit.ProgressWindow(getString("addon-name"))
+				.createLine({type: "fail", text: getString("annotation-not-created")})
 				.show();
 		}
 		// Note: the current tool (highlight/underline) is left untouched so
 		// the user can keep annotating.
 	} catch (e) {
-		reportError("create annotation failed", e);
+		reportError("error-create-annotation", e);
 	}
 }
 

@@ -10,6 +10,7 @@
 
 import {normalizeColor, STOCK_COLORS} from "./common";
 import {getRecentColors, rememberColor} from "./prefs";
+import {getString} from "../../utils/locale";
 
 const PICKER_ID = "jec-color-picker";
 
@@ -104,10 +105,10 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"font-weight: 600",
 	].join("; ");
 	const title = doc.createElement("span");
-	title.textContent = "Just Enough Color Picker";
+	title.textContent = getString("picker-title");
 	const closeBtn = doc.createElement("button");
 	closeBtn.textContent = "✕";
-	closeBtn.title = "关闭";
+	closeBtn.title = getString("picker-close");
 	closeBtn.style.cssText = [
 		"border: none",
 		"background: none",
@@ -200,25 +201,25 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	};
 
 	// 1) Zotero's stock 8 colors
-	const zoteroGroup = makeGroup("Zotero Color");
+	const zoteroGroup = makeGroup(getString("picker-group-zotero"));
 	for (const color of STOCK_COLORS) {
 		zoteroGroup.row.append(makeSwatch(color));
 	}
 
 	// 2) Strong saturated hues
-	const strongGroup = makeGroup("Strong Color");
+	const strongGroup = makeGroup(getString("picker-group-strong"));
 	for (const color of buildStrongPresets()) {
 		strongGroup.row.append(makeSwatch(color));
 	}
 
 	// 3) Light pastel hues
-	const lightGroup = makeGroup("Light Color");
+	const lightGroup = makeGroup(getString("picker-group-light"));
 	for (const color of buildLightPresets()) {
 		lightGroup.row.append(makeSwatch(color));
 	}
 
 	// 4) Morandi muted hues
-	const morandiGroup = makeGroup("Morandi Color");
+	const morandiGroup = makeGroup(getString("picker-group-morandi"));
 	for (const color of buildMorandiPresets()) {
 		morandiGroup.row.append(makeSwatch(color));
 	}
@@ -226,7 +227,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	// 5) Recently used custom colors
 	const recent = getRecentColors().filter(c => normalizeColor(c));
 	if (recent.length) {
-		const recentGroup = makeGroup("Recently Used");
+		const recentGroup = makeGroup(getString("picker-group-recent"));
 		for (const color of recent) {
 			recentGroup.row.append(makeSwatch(color));
 		}
@@ -244,7 +245,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 	const colorInput = doc.createElement("input");
 	colorInput.type = "color";
 	colorInput.value = options.initialColor || "#ff0000";
-	colorInput.title = "打开系统取色器";
+	colorInput.title = getString("picker-open-system");
 	colorInput.style.cssText = [
 		"width: 36px",
 		"height: 24px",
@@ -269,7 +270,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"font-family: monospace",
 	].join("; ");
 	const applyBtn = doc.createElement("button");
-	applyBtn.textContent = "应用";
+	applyBtn.textContent = getString("picker-apply");
 	applyBtn.style.cssText = [
 		"padding: 3px 10px",
 		"border: none",

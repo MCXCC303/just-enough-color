@@ -9,6 +9,10 @@ class Addon {
 		env: "development" | "production";
 		initialized?: boolean;
 		ztoolkit: ZToolkit;
+		/** Fluent bundle over the plugin's FTL file (set by initLocale()). */
+		locale?: {
+			current: Localization;
+		};
 	};
 	public hooks: typeof hooks;
 

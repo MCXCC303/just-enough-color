@@ -13,6 +13,9 @@
  *     (CustomSections like `renderTextSelectionPopup`)
  */
 
+import type {FluentMessageId} from "../../../typings/i10n";
+import {getString} from "../../utils/locale";
+
 /** The event names accepted by Zotero.Reader.registerEventListener. */
 type ReaderEventType = Parameters<
 	typeof Zotero.Reader.registerEventListener
@@ -136,19 +139,21 @@ export function cloneIntoFrame(reader: ReaderLike, value: unknown): any {
 }
 
 /**
- * Log an error both to the debug console and to a visible progress window,
- * so failures during testing are immediately visible without the error
- * console.
+ * Log an error both to the debug console and to a visible progress window, so
+ * failures during testing are immediately visible without the error console.
+ *
+ * @param id Message id of the localized summary; the technical detail is
+ *           passed to it as the `$detail` variable.
  */
-export function reportError(context: string, error: unknown): void {
-	const message = error instanceof Error
+export function reportError(id: FluentMessageId, error: unknown): void {
+	const detail = error instanceof Error
 		? `${error.name}: ${error.message}`
 		: String(error);
-	Zotero.debug(`[JEC] ${context}: ${message}`);
-	Zotero.debug(`[JEC] ${context} stack: ${error instanceof Error ? error.stack : ""}`);
+	Zotero.debug(`[JEC] ${id}: ${detail}`);
+	Zotero.debug(`[JEC] ${id} stack: ${error instanceof Error ? error.stack : ""}`);
 	try {
-		new ztoolkit.ProgressWindow("Just Enough Color")
-			.createLine({type: "error", text: `${context}: ${message}`})
+		new ztoolkit.ProgressWindow(getString("addon-name"))
+			.createLine({type: "error", text: getString(id, {args: {detail}})})
 			.show();
 	} catch {
 		// Progress window unavailable - ignore

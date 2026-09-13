@@ -1,6 +1,7 @@
 import {registerSelectionEntry, unregisterSelectionEntry} from "./modules/reader/selection-entry";
 import {registerAnnotationMenu, unregisterAnnotationMenu} from "./modules/reader/annotation-menu";
 import {registerPrefsScripts} from "./modules/preferences/prefs-ui";
+import {initLocale} from "./utils/locale";
 import {config} from "../package.json";
 
 async function onStartup() {
@@ -10,6 +11,9 @@ async function onStartup() {
 		Zotero.unlockPromise,
 		Zotero.uiReadyPromise,
 	]);
+
+	// Load the plugin's FTL file (must happen before any string is fetched)
+	initLocale();
 
 	// Register the preferences pane
 	Zotero.PreferencePanes.register({

@@ -7,6 +7,7 @@
 
 import {getRecentColors} from "../reader/prefs";
 import {PREFS, setPref} from "../../utils/prefs";
+import {getString} from "../../utils/locale";
 
 let win: Window | null = null;
 let doc: Document | null = null;
@@ -43,7 +44,7 @@ function renderRecentColors(): void {
 	container.replaceChildren();
 	const recent = getRecentColors();
 	if (!recent.length) {
-		container.append("（暂无）");
+		container.append(getString("pref-recent-empty"));
 		return;
 	}
 	for (const color of recent) {

@@ -21,6 +21,7 @@ import {
 	unregisterReaderListener
 } from "./common";
 import {openColorPicker} from "./color-picker";
+import {getString} from "../../utils/locale";
 
 function handleAnnotationContextMenu(event: ReaderEvent): void {
 	try {
@@ -66,7 +67,7 @@ function handleAnnotationContextMenu(event: ReaderEvent): void {
 					try {
 						const internal = reader._internalReader;
 						if (!internal?._annotationManager) {
-							reportError("annotationManager unavailable", new Error("_internalReader or _annotationManager missing"));
+							reportError("error-annotation-manager", new Error("_internalReader or _annotationManager missing"));
 							return;
 						}
 						// Explicitly clone into the iframe realm (see cloneIntoFrame).
@@ -75,7 +76,7 @@ function handleAnnotationContextMenu(event: ReaderEvent): void {
 						);
 						Zotero.debug("[JEC] annotation colors updated");
 					} catch (e) {
-						reportError("update annotation colors failed", e);
+						reportError("error-update-color", e);
 					}
 				},
 			});
@@ -87,7 +88,7 @@ function handleAnnotationContextMenu(event: ReaderEvent): void {
 		// itself. Clicking the item opens the picker, so no separate palette
 		// item is needed.
 		append({
-			label: "Just Enough Color",
+			label: getString("addon-name"),
 			color: currentColor ?? undefined,
 			checked: isCustom,
 			disabled: reader._state?.readOnly || readOnly,
@@ -95,7 +96,7 @@ function handleAnnotationContextMenu(event: ReaderEvent): void {
 			onCommand: () => openPickerForAnnotations(params.x, params.y),
 		});
 	} catch (e) {
-		reportError("annotation context menu failed", e);
+		reportError("error-annotation-menu", e);
 	}
 }
 
