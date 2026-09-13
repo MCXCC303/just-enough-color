@@ -37,8 +37,25 @@ jobs:
           unzip -l "$XPI" | grep -q "bootstrap.js"
           unzip -l "$XPI" | grep -q "content/scripts/jec.js"
           unzip -l "$XPI" | grep -q "content/preferences.xhtml"
-          # The build should also generate the Zotero update manifest
-          test -f .scaffold/build/update.json
+          # Fluent strings must ship inside the XPI (Zotero reads them from
+          # <root>/locale/<locale>/*.ftl)
+          unzip -l "$XPI" | grep -q "locale/en-US/jec-addon.ftl"
+          unzip -l "$XPI" | grep -q "locale/zh-CN/jec-addon.ftl"
+          # The build also generates the Zotero auto-update manifest(s).
+          # zotero-plugin-scaffold always writes update-beta.json (the beta
+          # channel) and additionally update.json for a non-prerelease version,
+          # so a prerelease build such as 0.1.4-beta.1 only produces the former.
+          VERSION=$(node -p "require('./package.json').version")
+          MISSING=""
+          [ -f .scaffold/build/update-beta.json ] || MISSING=" update-beta.json"
+          if [[ "$VERSION" != *-* ]]; then
+            [ -f .scaffold/build/update.json ] || MISSING="$MISSING update.json"
+          fi
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing update manifest(s) for version $VERSION:$MISSING"
+            exit 1
+          fi
+          echo "Update manifests for $VERSION: $(basename -a .scaffold/build/update*.json | tr '\n' ' ')"
           echo "XPI verification passed"
 
       - name: Upload XPI artifact

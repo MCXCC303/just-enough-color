@@ -15,7 +15,7 @@
 		"url": "git+https://github.com/MCXCC303/just-enough-color.git"
 	},
 	"license": "AGPL-3.0-or-later",
-	"author": "thf",
+	"author": "MCXCC303",
 	"scripts": {
 		"start": "zotero-plugin serve",
 		"build": "zotero-plugin build && mkdir -p build && cp .scaffold/build/just-enough-color.xpi build/",
