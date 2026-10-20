@@ -8,6 +8,7 @@ declare namespace _ZoteroTypes {
   interface Prefs {
     PluginPrefsMap: {
       "recent-colors": string;
+      "custom-palette": string;
     };
   }
 }

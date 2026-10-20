@@ -6,6 +6,11 @@ const PREFS_PREFIX = config.prefsPrefix;
 export const PREFS = {
 	/** JSON array of recently used custom colors, e.g. ["#ff00aa"]. */
 	RECENT_COLORS: "recent-colors",
+	/**
+	 * JSON array of the user's fixed palette, e.g. ["#8ab380"].
+	 * The array order is the rotation order used by the quick swatch.
+	 */
+	CUSTOM_PALETTE: "custom-palette",
 } as const;
 
 export type PrefKey = (typeof PREFS)[keyof typeof PREFS];

@@ -1,15 +1,16 @@
 /**
  * The arbitrary-color picker overlay.
  *
- * A floating panel created inside the reader iframe document. It offers a
- * preset rainbow grid, the stock Zotero colors, recently used custom colors
- * and a native `<input type="color">` plus hex field for truly arbitrary
- * colors. Singleton - at most one picker exists at a time; it closes on
- * outside click, Escape or the close button.
+ * A floating panel created inside the reader iframe document. It offers the
+ * user's fixed palette, a preset rainbow grid, the stock Zotero colors,
+ * recently used custom colors and a native `<input type="color">` plus hex
+ * field for truly arbitrary colors. Singleton - at most one picker exists at
+ * a time; it closes on outside click, Escape or the close button.
  */
 
 import {normalizeColor, STOCK_COLORS} from "./common";
 import {getRecentColors, rememberColor} from "./prefs";
+import {addPaletteColor, getCustomPalette, removePaletteColor} from "./palette";
 import {getString} from "../../utils/locale";
 
 const PICKER_ID = "jec-color-picker";
@@ -88,7 +89,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"background: var(--material-sidepane, #ffffff)",
 		"color: var(--fill-primary, #000000)",
 		"border: 1px solid var(--fill-quaternary, #c8c8c8)",
-		"border-radius: 8px",
+		"border-radius: 6px",
 		"box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25)",
 		"font-size: 13px",
 		"user-select: none",
@@ -200,31 +201,140 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		return swatch;
 	};
 
-	// 1) Zotero's stock 8 colors
+	// 1) The user's fixed palette
+	//
+	// The fixed palette is the user's own set of colors (issue #1). It is
+	// used by the quick swatch in the selection popup and can be edited right
+	// here: the "×" badge removes a color, the "+" button adds the color
+	// currently entered in the hex field below.
+	//
+	// `getCurrentHex` is filled in once the hex field exists; the button is
+	// only clickable after that.
+	let getCurrentHex: () => string = () => "";
+	const paletteGroup = makeGroup(getString("picker-group-custom"));
+	const makePaletteSwatch = (color: string): HTMLElement => {
+		const wrap = doc.createElement("div");
+		wrap.style.cssText = "position: relative; display: inline-flex;";
+		const swatch = doc.createElement("button");
+		swatch.style.cssText = [
+			"width: 20px",
+			"height: 20px",
+			"border-radius: 4px",
+			"border: 1px solid rgba(0, 0, 0, 0.2)",
+			"cursor: pointer",
+			"padding: 0",
+		].join("; ");
+		swatch.style.background = color;
+		swatch.title = color;
+		swatch.addEventListener("click", (e) => {
+			e.stopPropagation();
+			Zotero.debug(`[JEC] palette swatch clicked: ${color}`);
+			closeColorPicker();
+			onPick(color);
+		});
+		const removeBtn = doc.createElement("button");
+		removeBtn.textContent = "✕";
+		removeBtn.title = getString("picker-palette-remove");
+		removeBtn.style.cssText = [
+			"position: absolute",
+			"top: -5px",
+			"right: -5px",
+			"width: 13px",
+			"height: 13px",
+			"display: flex",
+			"align-items: center",
+			"justify-content: center",
+			"font-size: 9px",
+			"text-align: center",
+			"border-radius: 50%",
+			"border: none",
+			"cursor: pointer",
+			"margin: 0",
+			"padding: 0",
+			"background: var(--fill-primary, #fff)",
+			"color: var(--color-background, #000)",
+			"opacity: 0",
+		].join("; ");
+		wrap.addEventListener("mouseenter", () => {
+			removeBtn.style.opacity = "1";
+		});
+		wrap.addEventListener("mouseleave", () => {
+			removeBtn.style.opacity = "0";
+		});
+		removeBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+			removePaletteColor(color);
+			Zotero.debug(`[JEC] removed ${color} from the palette`);
+			renderPaletteGroup();
+		});
+		wrap.append(swatch, removeBtn);
+		return wrap;
+	};
+	const renderPaletteGroup = () => {
+		paletteGroup.row.replaceChildren();
+		const colors = getCustomPalette();
+		for (const color of colors) {
+			paletteGroup.row.append(makePaletteSwatch(color));
+		}
+		const addBtn = doc.createElement("button");
+		addBtn.textContent = "+";
+		addBtn.title = getString("picker-palette-add");
+		addBtn.style.cssText = [
+			"width: 20px",
+			"height: 20px",
+			"display: flex",
+			"align-items: center",
+			"justify-content: center",
+			"border-radius: 4px",
+			"border: 1px dashed var(--fill-primary, #fff)",
+			"cursor: pointer",
+			"margin: 0",
+			"padding: 0",
+			"background: none",
+			"color: var(--fill-primary, #fff)",
+			"font-size: 13px",
+			"line-height: 1",
+		].join("; ");
+		addBtn.addEventListener("click", (e) => {
+			e.stopPropagation();
+			const hex = getCurrentHex();
+			if (addPaletteColor(hex)) {
+				Zotero.debug(`[JEC] added ${hex} to the palette`);
+			} else {
+				Zotero.debug(`[JEC] palette add ignored: "${hex}"`);
+			}
+			renderPaletteGroup();
+		});
+		paletteGroup.row.append(addBtn);
+	};
+	renderPaletteGroup();
+
+	// 2) Zotero's stock 8 colors
 	const zoteroGroup = makeGroup(getString("picker-group-zotero"));
 	for (const color of STOCK_COLORS) {
 		zoteroGroup.row.append(makeSwatch(color));
 	}
 
-	// 2) Strong saturated hues
+	// 3) Strong saturated hues
 	const strongGroup = makeGroup(getString("picker-group-strong"));
 	for (const color of buildStrongPresets()) {
 		strongGroup.row.append(makeSwatch(color));
 	}
 
-	// 3) Light pastel hues
+	// 4) Light pastel hues
 	const lightGroup = makeGroup(getString("picker-group-light"));
 	for (const color of buildLightPresets()) {
 		lightGroup.row.append(makeSwatch(color));
 	}
 
-	// 4) Morandi muted hues
+	// 5) Morandi muted hues
 	const morandiGroup = makeGroup(getString("picker-group-morandi"));
 	for (const color of buildMorandiPresets()) {
 		morandiGroup.row.append(makeSwatch(color));
 	}
 
-	// 5) Recently used custom colors
+	// 6) Recently used custom colors
 	const recent = getRecentColors().filter(c => normalizeColor(c));
 	if (recent.length) {
 		const recentGroup = makeGroup(getString("picker-group-recent"));
@@ -265,7 +375,7 @@ export function openColorPicker(options: ColorPickerOptions): void {
 		"padding: 3px 6px",
 		"border: 1px solid var(--fill-quaternary, #c8c8c8)",
 		"border-radius: 4px",
-		"background: var(--fill-secondary, #f9f9f9)",
+		"background: var(--color-background, #fff)",
 		"color: var(--fill-primary, #000)",
 		"font-family: monospace",
 	].join("; ");
@@ -309,6 +419,9 @@ export function openColorPicker(options: ColorPickerOptions): void {
 			clearChecked();
 		}
 	});
+
+	getCurrentHex = () => hexInput.value || colorInput.value;
+
 	const pick = () => {
 		const color = normalizeColor(hexInput.value) || normalizeColor(colorInput.value);
 		if (!color) {

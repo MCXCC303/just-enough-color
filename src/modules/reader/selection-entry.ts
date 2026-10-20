@@ -3,9 +3,13 @@
  *
  * When text is selected the reader shows a popup with the 8 stock colors
  * (`renderTextSelectionPopup` event, CustomSections extension point). This
- * module appends a rainbow swatch right after those 8 colors; clicking it
- * picks a random color from the 20 Morandi presets and creates a
- * highlight/underline with it via the reader's own annotation manager (so
+ * module appends a swatch right after those 8 colors; clicking it creates a
+ * highlight/underline with a color from the user's fixed palette (see
+ * `palette.ts`), rotating through the palette on every click. When the
+ * palette is empty it falls back to a random color from the 20 Morandi
+ * presets.
+ *
+ * The annotation is created via the reader's own annotation manager (so
  * comments, tags, page labels, the annotation popup's color indicator and
  * right-click color switching all work exactly as for stock colors).
  */
@@ -19,6 +23,7 @@ import {
 	unregisterReaderListener
 } from "./common";
 import {buildMorandiPresets} from "./color-picker";
+import {getCustomPalette, nextQuickColor} from "./palette";
 import {getString} from "../../utils/locale";
 
 /**
@@ -46,6 +51,31 @@ function pickRandomMorandi(): string {
 	return MORANDI_COLORS[index];
 }
 
+/**
+ * The color the quick swatch hands out: the next color of the fixed palette,
+ * or a random Morandi color when no palette is configured.
+ */
+function pickQuickColor(): string {
+	return nextQuickColor() ?? pickRandomMorandi();
+}
+
+/**
+ * Background of the quick swatch: a gradient of the palette colors, so the
+ * swatch shows the fixed set at a glance. Falls back to the rainbow gradient
+ * when no palette is configured.
+ */
+function makeSwatchBackground(palette: string[]): string {
+	if (!palette.length) {
+		return "conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)";
+	}
+	// Sample at most 5 colors, so a long palette stays readable.
+	const sample =
+		palette.length <= 5
+			? palette
+			: Array.from({length: 5}, (_, i) => palette[Math.floor((i * palette.length) / 5)]);
+	return `linear-gradient(135deg, ${sample.join(", ")})`;
+}
+
 function ensurePopupStyle(doc: Document): void {
 	if (doc.getElementById(POPUP_STYLE_ID)) {
 		return;
@@ -66,16 +96,20 @@ function handleSelectionPopup(event: ReaderEvent): void {
 
 		const btn = doc.createElement("button");
 		btn.className = "toolbar-button color-button";
-		btn.title = getString("selection-swatch-title");
-		// Rainbow swatch sized like the native IconColor16 (16x16 rounded square
+		const palette = getCustomPalette();
+		btn.title = palette.length
+			? getString("selection-swatch-title-palette")
+			: getString("selection-swatch-title");
+		// Swatch sized like the native IconColor16 (16x16 rounded square
 		// with a subtle stroke) centered in the 20x20 color-button, so it lines
-		// up with the stock color buttons.
+		// up with the stock color buttons. It shows the fixed palette when one
+		// is configured, otherwise the rainbow.
 		const swatch = doc.createElement("span");
 		swatch.style.cssText = [
 			"width: 16px",
 			"height: 16px",
 			"border-radius: 2px",
-			"background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+			`background: ${makeSwatchBackground(palette)}`,
 			"border: 1px solid rgba(0, 0, 0, 0.1)",
 		].join("; ");
 		btn.append(swatch);
@@ -88,7 +122,7 @@ function handleSelectionPopup(event: ReaderEvent): void {
 				return;
 			}
 			clicked = true;
-			createAnnotationWithColor(reader, params.annotation, pickRandomMorandi());
+			createAnnotationWithColor(reader, params.annotation, pickQuickColor());
 		});
 
 		append(btn);

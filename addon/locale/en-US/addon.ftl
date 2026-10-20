@@ -12,9 +12,16 @@ addon-name = Just Enough Color
 # annotation with a random Morandi color)
 selection-swatch-title = Highlight/underline with a random Morandi color
 
+# Tooltip of the swatch when a fixed palette is configured (it creates an
+# annotation with the next color of that palette)
+selection-swatch-title-palette = Highlight/underline with the next color of your fixed palette
+
 # Color picker overlay
 picker-title = Just Enough Color Picker
 picker-close = Close
+picker-group-custom = My Palette
+picker-palette-add = Add this color to the palette
+picker-palette-remove = Remove from the palette
 picker-group-zotero = Zotero Color
 picker-group-strong = Strong Color
 picker-group-light = Light Color
@@ -28,9 +35,17 @@ annotation-not-created = Annotation not created: the reader is read-only or the 
 
 # Preferences pane
 pref-intro = Use any color for highlights and underlines in the Zotero reader:
-pref-usage-selection = · Select text, then click the rainbow swatch at the end of the color palette to annotate with a random Morandi color;
-pref-usage-menu = · Right-click an annotation and choose "Just Enough Color" to re-color it with any color;
-pref-usage-check = · Annotations that use a custom color show a check mark (✔) on that menu item.
+pref-palette-title = Fixed palette
+pref-palette-empty = (none yet)
+pref-palette-add = Add
+pref-palette-clear = Clear
+pref-palette-remove = Remove
+pref-palette-move-up = Move earlier
+pref-palette-move-down = Move later
+pref-palette-added = Added to the palette.
+pref-palette-cleared = The palette was cleared.
+pref-palette-invalid = Invalid color - use a hex value like #8ab380.
+pref-palette-duplicate = This color is already in the palette, or the palette is full.
 pref-recent-title = Recently used custom colors
 pref-recent-empty = (none yet)
 pref-clear-recent = Clear recent colors

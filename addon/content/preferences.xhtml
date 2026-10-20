@@ -8,14 +8,38 @@
 >
     <vbox flex="1" style="min-height: 200px; padding: 12px">
         <label>
-            <html:h3>Just Enough Color</html:h3>
+            <html:h3 data-l10n-id="pref-palette-title"></html:h3>
         </label>
-        <label data-l10n-id="pref-intro"></label>
-        <label style="margin-top: 4px" data-l10n-id="pref-usage-selection"></label>
-        <label data-l10n-id="pref-usage-menu"></label>
-        <label data-l10n-id="pref-usage-check"></label>
-
-        <separator style="margin: 16px 0"/>
+        <html:div
+                id="jec-palette-colors"
+                style="
+          min-height: 32px;
+          border: 1px solid var(--fill-quaternary, #ccc);
+          border-radius: 6px;
+          padding: 8px;
+          font-size: 12px;
+        "
+        ></html:div>
+        <html:div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+            <html:input
+                    id="jec-palette-color"
+                    type="color"
+                    value="#8ab380"
+                    style="width: 40px; height: 26px; padding: 0;"
+            />
+            <html:input
+                    id="jec-palette-hex"
+                    type="text"
+                    placeholder="#rrggbb"
+                    style="width: 110px; font-family: monospace;"
+            />
+            <button id="jec-palette-add" data-l10n-id="pref-palette-add"/>
+            <button id="jec-palette-clear" data-l10n-id="pref-palette-clear"/>
+        </html:div>
+        <html:div
+                id="jec-palette-status"
+                style="margin-top: 6px; font-size: 11px; color: var(--fill-secondary, #888);"
+        ></html:div>
 
         <label>
             <html:h3 data-l10n-id="pref-recent-title"></html:h3>
