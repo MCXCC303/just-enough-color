@@ -23,7 +23,7 @@
 		"release": "zotero-plugin release"
 	},
 	"dependencies": {
-		"zotero-plugin-toolkit": "5.1.0-beta.13"
+		"zotero-plugin-toolkit": "^6.0.0"
 	},
 	"devDependencies": {
 		"@types/node": "^24.0.0",
